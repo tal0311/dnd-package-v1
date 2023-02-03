@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="UTF-8" />
+ <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+ <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+ <title>Static Template</title>
+ <style>
+  ul {
+
+   background: lightcoral;
+
+  }
+
+  .hover {
+   background: lightgray;
+   transform: translate(1%, 1%);
+  }
+
+  .container {
+   background: lightgreen;
+  }
+
+
+
+  .listgroup4 {
+   background: lightseagreen;
+  }
+
+  .listgroup3 {
+   background: rgb(228, 162, 41);
+  }
+
+  .listgroup2 {
+   background: rgb(152, 42, 215);
+  }
+
+  .listgroup1 {
+   background: lightsalmon;
+  }
+
+
+  .ul-container {
+   padding: 1em;
+   background: lightblue;
+   margin: 1em;
+  }
+ </style>
+</head>
+<body onload="init()">
+ <ul class="container">
+
+
+  <section class="ul-container">
+   <ul data-dragList="0" class="listgroup1">
+   </ul>
+   <ul data-dragList="1" class="listgroup2">
+   </ul>
+
+
+ </ul>
+
+ </section>
+
+ </ul>
+ <script>
+
+  var lists = null
+  function init() {
+   const items = createList(3)
+   const items2 = createList(4)
+   lists = [
+    items,
+    items2,
+   ]
+   // renderItems()
+   // renderItems2()
+   renderLists()
+   setEvents()
+  }
+
+  function setEvents() {
+   document.querySelectorAll('[data-dragList]').forEach(elList => {
+    // console.log(elList)
+    elList.addEventListener('click', onListClick)
+    elList.addEventListener('dragstart', onDragStart)
+    elList.addEventListener('dragover', onDragOver)
+    elList.addEventListener('dragleave', ondragleave)
+    elList.addEventListener('dragenter', ondragenter)
+    elList.addEventListener('drop', onDrop)
+   })
+
+  }
+
+  function renderLists() {
+   renderList1()
+   renderList2()
+  }
+
+
+  function renderList1() {
+   const strHtmls = lists[0].map(item => `<li data-id="${item.id}" draggable="true">${item.content}</li>`).join('')
+   document.querySelector('.listgroup1').innerHTML = strHtmls
+  }
+
+  function renderList2() {
+   const strHtmls = lists[1].map(item => `<li data-id="${item.id}" draggable="true">${item.content}</li>`).join('')
+   document.querySelector('.listgroup2').innerHTML = strHtmls
+  }
+  function onListClick(ev) {
+   ev.stopPropagation();
+   idx = ev.target.parentNode.dataset.draglist
+   const elClicked = ev.target
+   const id = elClicked.dataset.id
+   console.log('id:', id)
+
+   const item = lists[idx].find(item => item.id === id)
+   console.log(item);
+  }
+
+  function onDragStart(ev) {
+   ev.stopPropagation();
+   // debugger
+   const listIdx = ev.target.parentNode.dataset.draglist
+   const elDragged = ev.target
+   const id = elDragged.dataset.id
+
+
+   const item = lists[listIdx].find(item => item.id === id)
+   console.log(item)
+
+   ev.dataTransfer.setData('text', JSON.stringify(
+    {
+     fromList: listIdx,
+     item
+    }))
+  }
+
+
+  function onDrop(ev) {
+   ev.stopPropagation();
+
+   const { id } = ev.target.dataset
+   const { fromList, item } = JSON.parse(ev.dataTransfer.getData('text'))
+   // list = lists[toList]
+   console.log('fromList:', fromList)
+   console.log('item:', item)
+
+   const dragResults = {
+    toList: lists[+ev.target.parentNode.dataset.draglist],
+    fromList: lists[fromList],
+    item
+   }
+
+   const idx = dragResults.toList
+    .findIndex(item => item.id === id)
+
+   const fromIdx = dragResults.fromList
+    .findIndex(item => item.id === dragResults.item.id)
+
+
+   dragResults.fromList.splice(fromIdx, 1)
+   // console.log('dragResults.fromList:', dragResults.fromList)
+   dragResults.toList.splice(idx, 0, dragResults.item)
+   console.log('after dragresults:', dragResults)
+
+   renderLists()
+  }
+
+  function createList(length) {
+   const items = []
+   for (let i = 0; i < length; i++) {
+
+    items.push({ id: makeId(), content: 'item ' + (i + 1) })
+   }
+   return [...items]
+  }
+
+
+
+  // function renderLists() {
+
+  //  const strHtmls = lists.map((list, idx) => {
+  //   return `<ul data-dragList="${idx}" class="listgroup${idx + 1}">
+  //   ${list.map(item => `<li data-id="${item.id}" draggable="true">${item.content}</li>`).join('')}
+  //    </ul>`
+  //  }).join('')
+
+  //  document.querySelector('.ul-container').innerHTML = strHtmls
+  // }
+
+  function makeId() {
+   return (Math.random() + 1).toString(36).substring(2)
+  }
+
+  function ondragenter(ev) {
+   ev.preventDefault()
+   ev.stopPropagation();
+   const { id } = ev.target.dataset
+
+   // const item = items.find(item => item.id === itemId)
+   // if (id === item.id) return
+   toggleHover(ev)
+  }
+
+  function onDragOver(ev) {
+   ev.preventDefault()
+   ev.stopPropagation();
+   // toggleHover(ev)
+   // console.log('ev.target:', ev.target)
+  }
+  function ondragleave(ev) {
+   ev.preventDefault()
+   ev.stopPropagation();
+   toggleHover(ev)
+   // toggleHover(ev)
+  }
+
+  function toggleHover(ev) {
+   ev.target.classList.toggle('hover')
+  }
+ </script>
+</body>
+</html>
